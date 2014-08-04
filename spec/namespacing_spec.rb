@@ -18,7 +18,7 @@ describe Namespacing do
     end
 
     it 'custom deliminators can optionally be specified' do
-      ns 'my_app|dojo|util|options', '|' do
+      ns 'my_app|dojo|util|options', :delimiter=>'|' do
         def names
           %w(john jill steve carol)
         end

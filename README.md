@@ -1,7 +1,17 @@
 # Namespacing [![Build Status](https://travis-ci.org/jah2488/namespacing.png?branch=master)](https://travis-ci.org/jah2488/namespacing) [![Code Climate](https://codeclimate.com/github/jah2488/namespacing.png)](https://codeclimate.com/github/jah2488/namespacing) [![Dependency Status](https://gemnasium.com/jah2488/namespacing.png)](https://gemnasium.com/jah2488/namespacing)
 [![Gem Version](https://badge.fury.io/rb/namespacing.png)](http://badge.fury.io/rb/namespacing)
 
+# This is a fork of jah2488/namespacing
 
+This fork is here for experimenting. See jah2488's for the authoritative gem.
+
+Changes: 
+  - added options hash to ns
+  - added `:constants` key to set constants in namespace
+  - moved `delim` argument as `:delimiter` key in options hash
+
+# Namespacing
+ 
 Namespacing adds namespaces to Ruby by taking inspiration from how Clojure handles its namespaces.
 It is primarly a simplification of the existing module syntax. Great for deeply nested modules or for attempting a more functional approach to writing Ruby code. I wrote [a blog post](http://jah2488.roon.io/adding-namespaces-to-ruby-for-fun-and-practice) about the inspiration and process of creating this code.
 
@@ -42,9 +52,10 @@ MyApp::Dojo::Util::Options.names
 #=> ['on', 'off', 'maybe', '7', '42', 'tuesday']
 ```
 
-An optional delimiter can be passed in when defining your namespace. (I would recommend against using `_` as that delimiter.)
+Option keys can be passed in when defining your namespace:
+ (jah2488 recommends against using `_` as that delimiter.)
 ```rb
-ns 'github|repositories|settings', '|' do
+ns 'github|repositories|settings', { :delimiter=> '|' } do
   def destroy!
     confirm
   end
@@ -70,9 +81,9 @@ Rails::ActiveSupport::Version #=> NameError: uninitialized constant Kernel::Rail
 VERSION #=> '1.0.0'
 ```
 
-There are currently two ways to define constants in the proper scoping to avoid this issue.
+There are currently three ways to define constants in the proper scoping to avoid this issue:
 
-__Define the full scope of the constant__
+1. __Define the full scope of the constant__
 ```rb
 ns 'rails.active.version' do
   Rails::Active::Version::MAJOR = 1
@@ -81,7 +92,7 @@ end
 Rails::Active::Version::MAJOR #=> 1
 ```
 
-__Use `const_set`__
+2. __Use `const_set`__
 ```rb
 ns 'rails.support.version' do
   const_set(:MAJOR, 1)
@@ -90,6 +101,20 @@ end
 Rails::Support::Version::MAJOR #=> 1
 ```
 
+3. __Use the `:constants` option key__
+```rb
+ns 'rails.support.version', {:constants=>{ :MAJOR=>1 }} do
+end
+
+Rails::Support::Version::MAJOR #=> 1
+```
+
+To access a constant inside the do block requires one of the forms 
+`self::CONSTNAME`; `const_get('CONSTNAME')`; or `Name::Space::ToConst::CONSTNAME`
+
+I (mcamiano) think that using `self::` or the full module path ensures
+that only the precise constant is picked up. The `const_get` method may reach 
+back to the global scope. 
 
 ## Contributing
 
